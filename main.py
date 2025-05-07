@@ -1,6 +1,7 @@
 import pygame
 import random, time
 pygame.init()
+
 sc_w=800
 sc_h=600
 sc=pygame.display.set_mode((sc_w,sc_h))
@@ -11,7 +12,7 @@ pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(1)
 gun_sound=pygame.mixer.Sound('music/3zgun.mp3')
 explosion_sound=pygame.mixer.Sound('music/explosion.mp3')
-
+ 
 bg_IMG=pygame.image.load('IMG/bg.png')
 bg_IMG=pygame.transform.scale(bg_IMG,(sc_w,sc_h))
 
@@ -21,18 +22,18 @@ win_IMG=pygame.transform.scale(win_IMG,(500,500))
 lose_IMG=pygame.image.load('IMG/lose.png')
 lose_IMG=pygame.transform.scale(lose_IMG,(500,500))
 
-shield_IMG=pygame.image.load('IMG/shield.png')
-shield_IMG=pygame.transform.scale(shield_IMG,(60,60))
-
 bullet_IMG=pygame.image.load('IMG/bullet.png')
 bullet_IMG=pygame.transform.scale(bullet_IMG,(10,51))
 bullet_IMG=pygame.transform.rotate(bullet_IMG,-90)
+
+shield_IMG=pygame.image.load('IMG/shield.png')
+shield_IMG=pygame.transform.scale(shield_IMG,(62,63))
 
 eny_bullet_IMG=pygame.image.load('IMG/enermy_bullet.png')
 eny_bullet_IMG=pygame.transform.scale(eny_bullet_IMG,(50,50))
 eny_bullet_IMG=pygame.transform.rotate(eny_bullet_IMG,180)
 
-meteorite_IMG=pygame.image.load('IMG/meteorite.png')
+meteorite_IMG=pygame.image.load('IMG/enermy.png')
 meteorite_IMG=pygame.transform.scale(meteorite_IMG,(70,103))
 meteorite_IMG=pygame.transform.rotate(meteorite_IMG,90)
 
@@ -46,7 +47,7 @@ explosion_IMG=pygame.transform.scale(explosion_IMG,(70,103))
 player_IMG=pygame.image.load('IMG/plane.png')
 player_IMG=pygame.transform.scale(player_IMG,(50,50))
 player_IMG=pygame.transform.rotate(player_IMG,-90)
-now=pygame.time.get_ticks()
+
 black=(0,0,0)
 white=(255,255,255)
 running=True
@@ -63,32 +64,45 @@ class meteorite(pygame.sprite.Sprite):
         self.rect.center=(x,y)
     def update(self):
         self.rect.y+=10
+        self.rect.x+=10
         print(self.rect.bottomleft)
         if self.rect.bottomright<0:
             self.kill()
+    
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image=player_IMG
         self.rect=self.image.get_rect()
+        
     def update(self):
         keys=pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.rect.x-=5
+
         if keys[pygame.K_RIGHT]:
             self.rect.x+=5
+        
         if self.rect.right>sc_w:
             self.rect.x=sc_w-50
+
         if self.rect.left<0:
             self.rect.x=0
+
         if keys[pygame.K_DOWN]:
             self.rect.y+=speed
+
         if keys[pygame.K_UP]:
             self.rect.y-=speed
+
         if self.rect.top<0:
             self.rect.y=0
+
         if self.rect.bottom>sc_h:
             self.rect.y=sc_h-50
+
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
@@ -100,6 +114,7 @@ class Bullet(pygame.sprite.Sprite):
         print(self.rect.left)
         if self.rect.left>1000:
             self.kill()
+
 class eny_Bullet(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
@@ -111,6 +126,19 @@ class eny_Bullet(pygame.sprite.Sprite):
         print(self.rect.right)
         if self.rect.left<0:
             self.kill()
+
+class shield(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image=shield_IMG
+        self.rect=self.image.get_rect()
+        self.rect.center=(x,y)
+        self.time_shield=pygame.time.get_ticks()
+    def update(self):
+        now_time_start2=pygame.time.get_ticks()
+        if now_time_start2-self.time_shield>3000:
+            self.kill()
+
 class enermy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -119,10 +147,12 @@ class enermy(pygame.sprite.Sprite):
         self.rect=self.image.get_rect()
         self.rect.x=sc_w
         self.rect.y=random.randint(70,sc_h-70)
+    
     def update(self):
         self.rect.x-=self.speed
         if self.rect.right<0:
             self.kill()
+
 class explosion(pygame.sprite.Sprite):
     def __init__(self,center):
         super().__init__()
@@ -130,17 +160,11 @@ class explosion(pygame.sprite.Sprite):
         self.rect=self.image.get_rect()
         self.rect.center=center
         self.time_start=pygame.time.get_ticks()
+
     def update(self):
         now_time=pygame.time.get_ticks()
-        if now_time- self.time_start:
+        if now_time- self.time_start>=300:
             self.kill()
-class shield(pygame.sprite.Sprite):
-    def __init__():
-        super().__init__()
-    def update(self):
-        global x_plane,y_plane
-        self.rect.center=x_plane,y_plane
-
 font=pygame.font.Font(None,40)
 clock=pygame.time.Clock()
 plane=Player()
@@ -156,9 +180,7 @@ bg_x=0
 bg_y=0
 valocity_x=1
 valocity_y=5
-shield_active=True
-x_plane=0
-y_plane=0
+shield_active=False
 def start_screen():
     title_font=pygame.font.Font(None,80)
     title_text=title_font.render('Plane game',True,white)
@@ -166,8 +188,11 @@ def start_screen():
     start_font=pygame.font.Font(None,35)
     start_text=start_font.render("Enter to play the game",True,white)
     start_rect=start_text.get_rect(center=(sc_w/2,sc_h/2+100))
+    
+    
     waiting=True
     while waiting:
+
         print('bd')
         sc.blit(title_text,title_rect)
         sc.blit(start_text,start_rect)
@@ -175,25 +200,40 @@ def start_screen():
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 waiting=False
-        if event.type==pygame.KEYDOWN:
-            if event.key==pygame.K_RETURN:
-                waiting=False
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_RETURN:
+                    waiting=False
         pygame.display.update()
 start_screen()
+
 while running:
-    x_plane=plane.rect.centerx
-    y_plane=plane.rect.centery
-    if random.random()<0.06:
+    
+    if score>=20:
+        level=3
+    
+    if score>=0 and score<10:
+        level =1
+    if score>=10 and score<20:
+        level=2
+        
+    
+    if random.random()<0.08:
         bullet_ready="ready"
+    
+
+
     clock.tick(60)
     sc.blit(bg_IMG,(bg_x,bg_y))
     sc.blit(bg_IMG,(bg_x+800,bg_y))
+    
+
+
     if timer>30:
         Enermy=enermy()
         all_gp.add(Enermy)
         enermy_gp.add(Enermy)
         timer=00000
-        timer+=1
+    timer+=1
     bg_x-=valocity_x
     if bg_x+600<0:
         bg_x=0
@@ -202,13 +242,28 @@ while running:
             running=False
         if event.type==pygame.KEYDOWN:
             if bullet_ready=="ready":
-                if event.key==pygame.K_SPACE:
+                if event.key==pygame.K_0:
                     gun_sound.play()
                     bullet=Bullet(plane.rect.right,plane.rect.centery)
                     bullet_gp.add(bullet)
                     all_gp.add(bullet)
                     print("bullet")
                     bullet_ready="reload"
+    
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            running=False
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_e:
+                now1=pygame.time.get_ticks()
+                now2=600
+                shield_active=True
+                shield_1=shield(plane.rect.centerx,plane.rect.centery)
+                if now1-now2<=0:
+                    shield_active=False()
+                    use=pygame.time.get_ticks()
+
+
     if score==40:
         sc.blit(win_IMG,(sc_w//2-250,sc_h//2-250))
         pygame.display.update()
@@ -217,56 +272,73 @@ while running:
         sc.blit(lose_IMG,(sc_w//2-250,sc_h//2-250))
         pygame.display.update()
         continue
-    if score>=10 and score<20:
-        level=2
-    if level ==2 or level==3:
+ 
+    
+    if level>=2:
         for Enermy in enermy_gp:
             if random.random()<0.01:
                 eny_bullet=eny_Bullet(Enermy.rect.left,Enermy.rect.centery)
                 eny_bullet_gp.add(eny_bullet)
                 all_gp.add(eny_bullet)
-    if score>=20:
-        level=3
+
+    if level ==3:
         for meteorites in meteorite_gp:
             if random.random()<0.009:
                 meteorite_NPC=meteorite(0,random.randint(100,700))
                 meteorite_gp.add(meteorite_NPC)
                 all_gp.add(meteorite_NPC)
-    if pygame.sprite.spritecollide(plane,enermy_gp,True):
-        explosion_sound.play()
-        score-=1
-    if pygame.sprite.spritecollide(plane,meteorite_gp,True):
-        explosion_sound.play()
-        score-=1
-    if pygame.sprite.spritecollide(plane,eny_bullet_gp,True):
-        explosion_sound.play()
-        score-=1
+    if shield_active==False:
+        if pygame.sprite.spritecollide(plane,enermy_gp,True):
+            explosion_sound.play()
+            score-=1
+
+        if pygame.sprite.spritecollide(plane,meteorite_gp,True):
+            explosion_sound.play()
+            score-=1
+
+        if pygame.sprite.spritecollide(plane,eny_bullet_gp,True):
+            explosion_sound.play()
+            score-=1
+    if shield_active==True:
+        if pygame.sprite.spritecollide(plane,enermy_gp,False):
+            explosion_sound.play()
+
+        if pygame.sprite.spritecollide(plane,meteorite_gp,False):
+            explosion_sound.play()
+
+
+        if pygame.sprite.spritecollide(plane,eny_bullet_gp,False):
+            explosion_sound.play()
+ 
+
     if pygame.sprite.groupcollide(bullet_gp,eny_bullet_gp,True,True):
         explosion_sound.play()
+
     if pygame.sprite.groupcollide(bullet_gp,meteorite_gp,True,True):
         explosion_sound.play()
+  
     if pygame.sprite.groupcollide(eny_bullet_gp,meteorite_gp,True,True):
         explosion_sound.play()
-        hits=pygame.sprite.groupcollide(bullet_gp,enermy_gp,True,True)
-        for hit in hits:
-            Explosion=explosion(hit.rect.center)
-            all_gp.add(Explosion)
-            explosion_sound.play()
-            score+=1
-    for event in pygame.event.get():
-        if event.type==pygame.KEYDOWN:
-            if event.key==pygame.K_e:
-                shield.update()
-                pygame.draw.circle(sc, (0,163,232), plane.rect.center, 40, 4)
-    score_text=font.render("Score: "+str(score),True,black)
+    
+
+        
+    hits=pygame.sprite.groupcollide(bullet_gp,enermy_gp,True,True)
+    for hit in hits:
+        Explosion=explosion(hit.rect.center)
+        all_gp.add(Explosion)
+        explosion_sound.play()
+        score+=1
+    if shield_active==False:
+        now =pygame.time.get_ticks
+        if now-use>= 600:
+            shield_active=True
+
     score_text=font.render("Score: "+str(score),True,black)
     lv_text=font.render("Level: "+str(level),True,black)
     ready_bullet=font.render("Bullet: "+str(bullet_ready),True,black)
     sc.blit(score_text,(10,10))
     sc.blit(lv_text,(150,10))
     sc.blit(ready_bullet,(600,10))
-
     all_gp.update()
     all_gp.draw(sc)
     pygame.display.update()
-
